@@ -18,7 +18,7 @@ A pre-configured Next.js starter with Drizzle ORM (MySQL), user authentication, 
 1. **Clone and install**
 
    ```bash
-   git clone <your-repo>
+   git clone https://github.com/fahmaliyi/next-drizzle.git
    cd superm
    npm install
    ```
