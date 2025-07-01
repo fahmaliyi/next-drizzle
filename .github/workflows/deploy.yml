@@ -1,4 +1,4 @@
-name: Deploy to cPanel via SSH
+name: Deploy via Self-Hosted Runner
 
 on:
   push:
@@ -6,17 +6,23 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    name: Deploy to cPanel Server
+    runs-on: self-hosted
     steps:
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.CPANEL_HOST }}
-          username: ${{ secrets.CPANEL_USER }}
-          key: ${{ secrets.CPANEL_SSH_KEY }}
-          script: |
-            cd ~/next-drizzle
-            git pull origin main
-            npm install --force
-            npm run build
-            pm2 restart next-drizzle || nohup node .next/standalone/server.js > out.log 2>&1 &
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install --force
+
+      - name: Build project
+        run: npm run build
+
+      - name: Start app using PM2 (or fallback to plain Node)
+        run: |
+          if command -v pm2 >/dev/null 2>&1; then
+            pm2 start .next/standalone/server.js --name next-drizzle || pm2 restart next-drizzle
+            pm2 save
+          else
+            nohup node .next/standalone/server.js > out.log 2>&1 &
+          fi
