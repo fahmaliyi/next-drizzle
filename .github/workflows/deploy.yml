@@ -8,21 +8,33 @@ jobs:
   deploy:
     name: Deploy to cPanel Server
     runs-on: self-hosted
+
     steps:
-      - name: Checkout repo
+      - name: 🔄 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: npm install --force
-
-      - name: Build project
-        run: npm run build
-
-      - name: Start app using PM2 (or fallback to plain Node)
+      - name: 📦 Install dependencies
         run: |
+          echo "Installing npm dependencies..."
+          npm install --force
+          echo "✅ Dependencies installed."
+
+      - name: 🛠️ Build Next.js app
+        run: |
+          echo "Building the project..."
+          npm run build
+          echo "✅ Build complete."
+
+      - name: 🚀 Start or restart app
+        run: |
+          echo "Checking if pm2 is installed..."
           if command -v pm2 >/dev/null 2>&1; then
+            echo "✅ pm2 is available. Managing process with pm2..."
             pm2 start .next/standalone/server.js --name next-drizzle || pm2 restart next-drizzle
             pm2 save
+            pm2 list
           else
+            echo "⚠️ pm2 not found. Falling back to nohup..."
             nohup node .next/standalone/server.js > out.log 2>&1 &
+            echo "✅ App started using plain Node.js (background)."
           fi
